@@ -3,10 +3,10 @@ package repos
 import (
 	"context"
 	"fmt"
-	apierror "test_guard/pkg/apiError"
-	"test_guard/pkg/db"
-	"test_guard/pkg/services/git"
-	queuejob "test_guard/pkg/services/queueJob"
+	apierror "scanner/pkg/apiError"
+	"scanner/pkg/db"
+	"scanner/pkg/services/git"
+	queuejob "scanner/pkg/services/queueJob"
 	"time"
 )
 
@@ -15,7 +15,7 @@ type Service interface {
 	GetRepos(ctx context.Context, req *ReqGetRepos) (resp *RespGetRepos, err error)
 	UpdateRepos(ctx context.Context, req *ReqUpdateRepos) (resp *RespUpdateRepos, err error)
 	DeleteRepos(ctx context.Context, req *ReqDeleteRepos) (resp *RespDeleteRepos, err error)
-	StartScanRepos(ctx context.Context, req *ReqScan) (resp RespScan, err error)
+	StartScanRepos(ctx context.Context, req *ReqScan) (resp *RespScan, err error)
 }
 
 type service struct {
@@ -32,8 +32,9 @@ func NewService(gitService git.Service, repoStore db.ReposStore, queue queuejob.
 	}
 }
 
-func (s *service) StartScanRepos(ctx context.Context, req *ReqScan) (resp RespScan, err error) {
+func (s *service) StartScanRepos(ctx context.Context, req *ReqScan) (resp *RespScan, err error) {
 	// get repos
+	resp = &RespScan{}
 	repos, err := s.repoStore.Get(ctx, req.ReposId)
 	if err != nil {
 		resp.Code = apierror.InternalServerError

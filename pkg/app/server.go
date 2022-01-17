@@ -6,11 +6,11 @@ import (
 	"net"
 	"net/http"
 	"os"
-	"test_guard/pkg/db"
-	"test_guard/pkg/repos"
-	"test_guard/pkg/result"
-	"test_guard/pkg/services/git"
-	queuejob "test_guard/pkg/services/queueJob"
+	"scanner/pkg/db"
+	"scanner/pkg/repos"
+	"scanner/pkg/result"
+	"scanner/pkg/services/git"
+	queuejob "scanner/pkg/services/queueJob"
 	"time"
 
 	"github.com/gorilla/handlers"
@@ -30,6 +30,9 @@ type Server struct {
 
 	ReposService  repos.Service
 	ResultService result.Service
+
+	GitService git.Service
+	QueueJob   queuejob.QueueJob
 }
 
 // Option : server option
@@ -76,9 +79,11 @@ func ServerOpts(store *db.Store) Option {
 	return func(s *Server) error {
 		logger := logrus.New()
 		gService := git.New(".")
-		qJob := queuejob.New()
+		qJob := queuejob.New(gService, store.Result, 8)
 		s.ReposService = repos.NewService(gService, s.Store.Repos, qJob)
 		s.ResultService = result.NewService()
+		s.GitService = gService
+		s.QueueJob = qJob
 		s.Logger = logger.WithField("service", "scanner")
 		return nil
 	}
@@ -97,7 +102,9 @@ func (s *Server) Shutdown(ctx context.Context) {
 }
 
 func (s *Server) initService() {
+	s.QueueJob.Start()
 	s.intiHealthCheck()
+	s.initReposService()
 }
 
 func (s *Server) intiHealthCheck() {
@@ -105,4 +112,10 @@ func (s *Server) intiHealthCheck() {
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte("ok"))
 	})
+}
+
+func (s *Server) initReposService() {
+	service := repos.NewService(s.GitService, s.Store.Repos, s.QueueJob)
+	loggingService := repos.NewLoggingService(s.Logger, service)
+	repos.NewHandler(s.Logger, loggingService).AddRoutes(s.RootRouter)
 }

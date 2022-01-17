@@ -1,4 +1,4 @@
-module test_guard
+module scanner
 
 go 1.17
 

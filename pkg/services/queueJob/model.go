@@ -2,7 +2,7 @@ package queuejob
 
 import (
 	"io"
-	"test_guard/pkg/services/git"
+	"scanner/pkg/services/git"
 
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
@@ -29,4 +29,33 @@ type scanResult struct {
 type singleFile struct {
 	Reader   io.Reader
 	FileName string
+}
+
+type findings struct {
+	Findings []finding `json:"findings"`
+}
+
+type finding struct {
+	Type     string   `json:"type"`
+	RuleID   string   `json:"ruleId"`
+	Location location `json:"location"`
+	Metadata metadata `json:"metadata"`
+}
+
+type location struct {
+	Path     string   `json:"path"`
+	Position position `json:"positions"`
+}
+
+type position struct {
+	Begin line `json:"begin"`
+}
+
+type line struct {
+	Line int `json:"line"`
+}
+
+type metadata struct {
+	Description string `json:"description"`
+	Severity    string `json:"severity"`
 }

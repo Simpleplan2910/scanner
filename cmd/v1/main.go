@@ -5,8 +5,8 @@ import (
 	"log"
 	"os"
 	"os/signal"
-	"test_guard/pkg/app"
-	"test_guard/pkg/db"
+	"scanner/pkg/app"
+	"scanner/pkg/db"
 	"time"
 
 	"github.com/pkg/errors"

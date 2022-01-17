@@ -1,7 +1,7 @@
 package repos
 
 import (
-	"test_guard/pkg/db"
+	"scanner/pkg/db"
 
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )

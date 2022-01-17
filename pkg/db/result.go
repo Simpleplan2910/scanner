@@ -68,7 +68,7 @@ func (db *resultStore) UpdateQueuedAt(ctx context.Context, id primitive.ObjectID
 	up := bson.M{
 		"queuedAt": t,
 	}
-	_, err := db.collection.UpdateOne(ctx, bson.M{"_id": id}, up)
+	_, err := db.collection.UpdateOne(ctx, bson.M{"_id": id}, bson.M{"$set": up})
 	return err
 }
 
@@ -76,7 +76,7 @@ func (db *resultStore) UpdateStatus(ctx context.Context, id primitive.ObjectID, 
 	up := bson.M{
 		"status": status,
 	}
-	_, err := db.collection.UpdateOne(ctx, bson.M{"_id": id}, up)
+	_, err := db.collection.UpdateOne(ctx, bson.M{"_id": id}, bson.M{"$set": up})
 	return err
 }
 
@@ -84,7 +84,7 @@ func (db *resultStore) UpdateFinding(ctx context.Context, id primitive.ObjectID,
 	up := bson.M{
 		"findings": findings,
 	}
-	_, err := db.collection.UpdateOne(ctx, bson.M{"_id": id}, up)
+	_, err := db.collection.UpdateOne(ctx, bson.M{"_id": id}, bson.M{"$set": up})
 	return err
 }
 
@@ -92,7 +92,7 @@ func (db *resultStore) UpdateScanningAt(ctx context.Context, id primitive.Object
 	up := bson.M{
 		"scanningAt": t,
 	}
-	_, err := db.collection.UpdateOne(ctx, bson.M{"_id": id}, up)
+	_, err := db.collection.UpdateOne(ctx, bson.M{"_id": id}, bson.M{"$set": up})
 	return err
 }
 
@@ -100,7 +100,7 @@ func (db *resultStore) UpdateFinishedAt(ctx context.Context, id primitive.Object
 	up := bson.M{
 		"finishedAt": t,
 	}
-	_, err := db.collection.UpdateOne(ctx, bson.M{"_id": id}, up)
+	_, err := db.collection.UpdateOne(ctx, bson.M{"_id": id}, bson.M{"$set": up})
 	return err
 }
 
