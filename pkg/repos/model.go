@@ -56,3 +56,15 @@ type RespDeleteRepos struct {
 	Code    int
 	Message string
 }
+
+type ReqGetResult struct {
+	ReposID              primitive.ObjectID
+	PageSize, PageNumber int
+}
+
+type RespGetResult struct {
+	Code    int
+	Message string
+	Total   int64
+	Results []db.Result
+}

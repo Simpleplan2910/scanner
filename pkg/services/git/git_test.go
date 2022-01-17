@@ -2,8 +2,8 @@ package git
 
 import "testing"
 
-func Test_gitRepos(t *testing.T) {
-	dir := "."
+func Test_GetTextFiles(t *testing.T) {
+	dir := "samples"
 	git := New(dir)
 	r, err := git.GetRepos("https://github.com/guardrailsio/backend-engineer-challenge.git")
 	if err != nil {
@@ -15,5 +15,8 @@ func Test_gitRepos(t *testing.T) {
 		t.Errorf("get text file error: %s", err)
 		return
 	}
-	t.Logf("list files %+v", files)
+	if len(files) == 0 {
+		t.Errorf("not found any file")
+		return
+	}
 }

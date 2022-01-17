@@ -5,7 +5,7 @@ RUN apk update && apk add --no-cache git make bash
 ARG VERSION=dev
 ENV IMAGE_TAG=${VERSION}
 
-WORKDIR $GOPATH/src/weeio
+WORKDIR $GOPATH/src/scanner
 COPY . .
 RUN go mod download && go mod verify 
 RUN make o=/go/bin/scanner
@@ -16,13 +16,7 @@ ARG PGID=2000
 
 RUN apk add --no-cache curl
 
-# RUN addgroup -g ${PGID} wee \
-#     && adduser -D -u ${PUID} -G wee -h /wee -D wee \
-#     && chown -R wee /wee
-
 COPY --from=builder /go/bin/scanner /go/bin/scanner
-
-# USER wee
 
 #Healthcheck to make sure container is ready
 HEALTHCHECK --interval=5m --timeout=3s \

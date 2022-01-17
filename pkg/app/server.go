@@ -80,7 +80,7 @@ func ServerOpts(store *db.Store) Option {
 		logger := logrus.New()
 		gService := git.New("samples")
 		qJob := queuejob.New(gService, store.Result, 8)
-		s.ReposService = repos.NewService(gService, s.Store.Repos, qJob)
+		s.ReposService = repos.NewService(gService, s.Store.Repos, s.Store.Result, qJob)
 		s.ResultService = result.NewService()
 		s.GitService = gService
 		s.QueueJob = qJob
@@ -115,7 +115,7 @@ func (s *Server) intiHealthCheck() {
 }
 
 func (s *Server) initReposService() {
-	service := repos.NewService(s.GitService, s.Store.Repos, s.QueueJob)
+	service := repos.NewService(s.GitService, s.Store.Repos, s.Store.Result, s.QueueJob)
 	loggingService := repos.NewLoggingService(s.Logger, service)
 	repos.NewHandler(s.Logger, loggingService).AddRoutes(s.RootRouter)
 }

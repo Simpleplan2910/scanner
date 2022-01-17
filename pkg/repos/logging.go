@@ -100,3 +100,18 @@ func (s *loggingService) StartScanRepos(ctx context.Context, req *ReqScan) (resp
 	}(time.Now())
 	return s.next.StartScanRepos(ctx, req)
 }
+func (s *loggingService) GetResult(ctx context.Context, req *ReqGetResult) (resp *RespGetResult, err error) {
+	defer func(begin time.Time) {
+		took := time.Since(begin)
+		s.logger.WithFields(logrus.Fields{
+			"method":           "GetResult",
+			"request.ReposId":  req.ReposID,
+			"response.Code":    resp.Code,
+			"response.Message": resp.Message,
+			"took":             took,
+			"atTime":           begin,
+			"error":            fmt.Sprintf("%+v", err),
+		}).Info("GetResult")
+	}(time.Now())
+	return s.next.GetResult(ctx, req)
+}

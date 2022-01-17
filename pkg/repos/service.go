@@ -16,18 +16,21 @@ type Service interface {
 	UpdateRepos(ctx context.Context, req *ReqUpdateRepos) (resp *RespUpdateRepos, err error)
 	DeleteRepos(ctx context.Context, req *ReqDeleteRepos) (resp *RespDeleteRepos, err error)
 	StartScanRepos(ctx context.Context, req *ReqScan) (resp *RespScan, err error)
+	GetResult(ctx context.Context, req *ReqGetResult) (resp *RespGetResult, err error)
 }
 
 type service struct {
 	gitService git.Service
 	repoStore  db.ReposStore
+	result     db.ResultStore
 	queue      queuejob.QueueJob
 }
 
-func NewService(gitService git.Service, repoStore db.ReposStore, queue queuejob.QueueJob) Service {
+func NewService(gitService git.Service, repoStore db.ReposStore, result db.ResultStore, queue queuejob.QueueJob) Service {
 	return &service{
 		gitService: gitService,
 		repoStore:  repoStore,
+		result:     result,
 		queue:      queue,
 	}
 }
@@ -106,7 +109,7 @@ func (s *service) GetRepos(ctx context.Context, req *ReqGetRepos) (resp *RespGet
 
 func (s *service) UpdateRepos(ctx context.Context, req *ReqUpdateRepos) (resp *RespUpdateRepos, err error) {
 	resp = &RespUpdateRepos{}
-	// TODO: should check if reposURL valid  and exist
+	// TODO: should check if reposURL valid and exist
 	if req.ID.IsZero() {
 		resp.Code = apierror.InvalidRequest
 		resp.Message = apierror.InvalidRequestMess
@@ -133,5 +136,50 @@ func (s *service) UpdateRepos(ctx context.Context, req *ReqUpdateRepos) (resp *R
 }
 
 func (s *service) DeleteRepos(ctx context.Context, req *ReqDeleteRepos) (resp *RespDeleteRepos, err error) {
-	return
+	resp = &RespDeleteRepos{}
+	// TODO: should check if reposURL valid and exist
+	if req.ID.IsZero() {
+		resp.Code = apierror.InvalidRequest
+		resp.Message = apierror.InvalidRequestMess
+		return resp, fmt.Errorf("id empty")
+	}
+
+	err = s.repoStore.Delete(ctx, req.ID)
+	if err != nil {
+		resp.Code = apierror.InternalServerError
+		resp.Message = apierror.InternalServerErrorMess
+		return resp, fmt.Errorf("delete error: %w", err)
+	}
+
+	return resp, nil
+}
+
+func (s *service) GetResult(ctx context.Context, req *ReqGetResult) (resp *RespGetResult, err error) {
+	resp = &RespGetResult{}
+	if req.ReposID.IsZero() {
+		resp.Code = apierror.InvalidRequest
+		resp.Message = apierror.InvalidRequestMess
+		return resp, fmt.Errorf("id empty")
+	}
+
+	if req.PageNumber < 1 || req.PageSize < 1 {
+		resp.Code = apierror.InvalidRequest
+		resp.Message = apierror.InvalidRequestMess
+		return resp, fmt.Errorf("page number or page size less than 1")
+	}
+
+	filter := &db.FilterResult{
+		ReposID:    req.ReposID,
+		PageSize:   req.PageSize,
+		PageNumber: req.PageNumber,
+	}
+	results, total, err := s.result.Filter(ctx, filter)
+	if err != nil {
+		resp.Code = apierror.InternalServerError
+		resp.Message = apierror.InternalServerErrorMess
+		return resp, fmt.Errorf("filter error: %w", err)
+	}
+	resp.Results = results
+	resp.Total = total
+	return resp, nil
 }

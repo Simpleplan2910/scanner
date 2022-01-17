@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 type UpdateRepos struct {
@@ -30,6 +31,7 @@ type FilterRepos struct {
 }
 
 type FilterResult struct {
+	ReposID    primitive.ObjectID
 	PageSize   int
 	PageNumber int
 	Name       string

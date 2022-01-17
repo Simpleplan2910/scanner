@@ -19,7 +19,7 @@ type QueueJob interface {
 }
 
 // we have some choices with the implementation
-// do multiple repos at the same time across a pool of workers or smaller services
+// do multiple repos at the same time across a pool of workers or smaller services,
 // or do one repos at a time but multiple files process across multiple cores
 // I chose the later bc we run on single machine
 type queueJob struct {

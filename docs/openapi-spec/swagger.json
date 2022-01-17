@@ -1,136 +1,459 @@
 {
     "openapi": "3.0.2",
     "info": {
-        "title": "WeeIO",
+        "title": "scanner",
         "version": "0.0.1 alpha",
         "contact": {
             "name": "Trong Chuong Hoang",
-            "email": "chuong@wee.vn"
+            "email": "hoangchuong2910@gmail.com"
         },
-        "description": "APIs documentation for weeio"
+        "description": "APIs documentation for scanner"
     },
     "servers": [
         {
-            "url": "https://weeio.weedigital.vn/api",
-            "description": "release test server"
-        },
-        {
-            "url": "https://weezi.com.vn/api",
-            "description": "Development server"
+            "url": "http://127.0.0.1/v1",
+            "description": "test server"
         }
     ],
     "tags": [
         {
-            "name": "device",
-            "description": "device"
+            "name": "repository",
+            "description": "repository"
         },
         {
-            "name": "activity",
-            "description": "activity"
-        },
-        {
-            "name": "admin",
-            "description": "admin"
-        },
-        {
-            "name": "pos",
-            "description": "pos"
-        },
-        {
-            "name": "location",
-            "description": "location"
-        },
-        {
-            "name": "user",
-            "description": "user"
-        },
-        {
-            "name": "logIO",
-            "description": "logIO"
-        },
-        {
-            "name": "webhook",
-            "description": "webhook"
+            "name": "results",
+            "description": "results"
         }
     ],
     "paths": {
-        "/admin/login": {
+        "/repos/add": {
             "post": {
-              "tags": [
-                "admin"
-              ],
-              "summary": "login Admin",
-              "description": "login Admin",
-              "requestBody": {
-                "content": {
-                  "application/json": {
-                    "schema": {
-                      "$ref": "#/components/schemas/RequestLogin"
+                "tags": [
+                    "repository"
+                ],
+                "summary": "add repository",
+                "description": "add repository",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/ReqAddRepos"
+                            }
+                        }
                     }
-                  }
-                }
-              },
-              "responses": {
-                "200": {
-                  "description": "",
-                  "content": {
-                    "application/json": {
-                      "schema": {
-                        "$ref": "#/components/schemas/ResponseLogin"
-                      }
-                    }
-                  }
                 },
-                "400": {
-                  "description": "request invalid, can't decrypt request body"
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/RespAddRepos"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "request invalid"
+                    }
                 }
-              }
             }
-          }
+        },
+        "/repos/get": {
+            "post": {
+                "tags": [
+                    "repository"
+                ],
+                "summary": "get repository",
+                "description": "get repository",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/ReqGetRepos"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/RespGetRepos"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "request invalid"
+                    }
+                }
+            }
+        },
+        "/repos/update": {
+            "post": {
+                "tags": [
+                    "repository"
+                ],
+                "summary": "update repository",
+                "description": "update repository",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/ReqUpdateRepos"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/RespUpdateRepos"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "request invalid"
+                    }
+                }
+            }
+        },
+        "/repos/delete": {
+            "post": {
+                "tags": [
+                    "repository"
+                ],
+                "summary": "delete repository",
+                "description": "delete repository",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/ReqDeleteRepos"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/RespDeleteRepos"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "request invalid"
+                    }
+                }
+            }
+        },
+        "/repos/scan": {
+            "post": {
+                "tags": [
+                    "repository"
+                ],
+                "summary": "scan repository",
+                "description": "scan repository",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/ReqScan"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/RespScan"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "request invalid"
+                    }
+                }
+            }
+        },
+        "/repos/scan_results": {
+            "post": {
+                "tags": [
+                    "results"
+                ],
+                "summary": "get scan results",
+                "description": "get scan results",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/ReqGetResult"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/RespGetResult"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "request invalid"
+                    }
+                }
+            }
+        }
     },
     "components": {
         "schemas": {
-            "RequestLogin": {
+            "ReqAddRepos": {
                 "type": "object",
                 "required": [
-                  "ID"
+                    "Name",
+                    "ReposURL"
                 ],
                 "properties": {
-                  "UserName": {
-                    "type": "string"
-                  },
-                  "Pwd": {
-                    "type": "string"
-                  }
+                    "Name": {
+                        "type": "string"
+                    },
+                    "ReposURL": {
+                        "type": "string"
+                    }
                 }
-              },
-              "ResponseLogin": {
+            },
+            "RespAddRepos": {
                 "type": "object",
                 "properties": {
-                  "Code": {
-                    "type": "integer"
-                  },
-                  "Message": {
-                    "type": "string"
-                  },
-                  "FullName": {
-                    "type": "string"
-                  },
-                  "CompanyID": {
-                    "type": "string"
-                  },
-                  "CompanyName": {
-                    "type": "string"
-                  },
-                  "AvatarID": {
-                    "type": "string"
-                  },
-                  "UID": {
-                    "type": "string"
-                  }
+                    "Code": {
+                        "type": "integer"
+                    },
+                    "Message": {
+                        "type": "string"
+                    },
+                    "ID": {
+                        "type": "string"
+                    }
                 }
-              }
+            },
+            "ReqGetRepos": {
+                "type": "object",
+                "required": [
+                    "PageSize",
+                    "PageNumber"
+                ],
+                "properties": {
+                    "PageSize": {
+                        "type": "integer",
+                        "description": ">= 1"
+                    },
+                    "PageNumber": {
+                        "type": "integer",
+                        "description": ">= 1"
+                    }
+                }
+            },
+            "RespGetRepos": {
+                "type": "object",
+                "properties": {
+                    "Code": {
+                        "type": "integer"
+                    },
+                    "Total": {
+                        "type": "integer"
+                    },
+                    "Message": {
+                        "type": "string"
+                    },
+                    "Repos": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/Repos"
+                        }
+                    }
+                }
+            },
+            "ReqUpdateRepos": {
+                "type": "object",
+                "properties": {
+                    "ID": {
+                        "type": "string"
+                    },
+                    "Name": {
+                        "type": "string"
+                    },
+                    "ReposURL": {
+                        "type": "string"
+                    }
+                }
+            },
+            "RespUpdateRepos": {
+                "type": "object",
+                "properties": {
+                    "Code": {
+                        "type": "integer"
+                    },
+                    "Message": {
+                        "type": "string"
+                    }
+                }
+            },
+            "ReqDeleteRepos": {
+                "type": "object",
+                "properties": {
+                    "ID": {
+                        "type": "string"
+                    }
+                }
+            },
+            "RespDeleteRepos": {
+                "type": "object",
+                "properties": {
+                    "Code": {
+                        "type": "integer"
+                    },
+                    "Message": {
+                        "type": "string"
+                    }
+                }
+            },
+            "ReqScan": {
+                "type": "object",
+                "properties": {
+                    "ID": {
+                        "type": "string"
+                    }
+                }
+            },
+            "RespScan": {
+                "type": "object",
+                "properties": {
+                    "Code": {
+                        "type": "integer"
+                    },
+                    "Message": {
+                        "type": "string"
+                    }
+                }
+            },
+            "ReqGetResult": {
+                "type": "object",
+                "required": [
+                    "PageSize",
+                    "PageNumber"
+                ],
+                "properties": {
+                    "PageSize": {
+                        "type": "integer",
+                        "description": ">= 1"
+                    },
+                    "PageNumber": {
+                        "type": "integer",
+                        "description": ">= 1"
+                    },
+                    "ReposID" : {
+                        "type": "string"
+                    }
+                }
+            },
+            "RespGetResult": {
+                "type": "object",
+                "properties": {
+                    "Code": {
+                        "type": "integer"
+                    },
+                    "Total": {
+                        "type": "integer"
+                    },
+                    "Message": {
+                        "type": "string"
+                    },
+                    "Repos": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/Result"
+                        }
+                    }
+                }
+            },
+            "Repos": {
+                "type": "object",
+                "properties": {
+                    "ID": {
+                        "type": "string"
+                    },
+                    "Name": {
+                        "type": "string"
+                    },
+                    "ReposURL": {
+                        "type": "string"
+                    },
+                    "CreatedAt": {
+                        "type": "string"
+                    },
+                    "UpdatedAt": {
+                        "type": "string"
+                    }
+                }
+            },
+            "Result": {
+                "type": "object",
+                "properties": {
+                    "ID": {
+                        "type": "string"
+                    },
+                    "ReposId": {
+                        "type": "string"
+                    },
+                    "Status": {
+                        "type": "string",
+                        "enum": [
+                          "Queued",
+                          "In Progress",
+                          "Success",
+                          "Failure"
+                        ]
+                    },
+                    "RepositoryUrl": {
+                        "type": "string"
+                    },
+                    "RepositoryName": {
+                        "type": "string"
+                    },
+                    "Findings": {
+                        "type": "string"
+                    },
+                    "QueuedAt": {
+                        "type": "string"
+                    },
+                    "ScanningAt": {
+                        "type": "string"
+                    },
+                    "FinishedAt": {
+                        "type": "string"
+                    }
+                }
+            }
         }
     }
-
 }

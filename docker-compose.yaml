@@ -5,12 +5,14 @@ services:
     image: "mongo:4.2.3"
     restart: always
     command: --bind_ip_all --quiet
+    ports:
+      - 27017:27017
     networks:
       - b-network
 
   scanner:
     container_name: "scanner"
-    image: "scanner:latest"
+    build: .
     restart: always
     ports:
       - 6080:6080

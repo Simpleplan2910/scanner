@@ -19,7 +19,7 @@ func main() {
 	ctxdb, cancel := context.WithTimeout(context.Background(), time.Second*3)
 	defer cancel()
 	connectOption := options.Client()
-	connectOption.ApplyURI("mongodb://127.0.0.1")
+	connectOption.ApplyURI("mongodb://mongodb")
 	client, err := mongo.Connect(ctxdb, connectOption)
 	if err != nil {
 		log.Fatalf("%+v", errors.WithStack(err))
