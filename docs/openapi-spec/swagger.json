@@ -1,0 +1,136 @@
+{
+    "openapi": "3.0.2",
+    "info": {
+        "title": "WeeIO",
+        "version": "0.0.1 alpha",
+        "contact": {
+            "name": "Trong Chuong Hoang",
+            "email": "chuong@wee.vn"
+        },
+        "description": "APIs documentation for weeio"
+    },
+    "servers": [
+        {
+            "url": "https://weeio.weedigital.vn/api",
+            "description": "release test server"
+        },
+        {
+            "url": "https://weezi.com.vn/api",
+            "description": "Development server"
+        }
+    ],
+    "tags": [
+        {
+            "name": "device",
+            "description": "device"
+        },
+        {
+            "name": "activity",
+            "description": "activity"
+        },
+        {
+            "name": "admin",
+            "description": "admin"
+        },
+        {
+            "name": "pos",
+            "description": "pos"
+        },
+        {
+            "name": "location",
+            "description": "location"
+        },
+        {
+            "name": "user",
+            "description": "user"
+        },
+        {
+            "name": "logIO",
+            "description": "logIO"
+        },
+        {
+            "name": "webhook",
+            "description": "webhook"
+        }
+    ],
+    "paths": {
+        "/admin/login": {
+            "post": {
+              "tags": [
+                "admin"
+              ],
+              "summary": "login Admin",
+              "description": "login Admin",
+              "requestBody": {
+                "content": {
+                  "application/json": {
+                    "schema": {
+                      "$ref": "#/components/schemas/RequestLogin"
+                    }
+                  }
+                }
+              },
+              "responses": {
+                "200": {
+                  "description": "",
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "$ref": "#/components/schemas/ResponseLogin"
+                      }
+                    }
+                  }
+                },
+                "400": {
+                  "description": "request invalid, can't decrypt request body"
+                }
+              }
+            }
+          }
+    },
+    "components": {
+        "schemas": {
+            "RequestLogin": {
+                "type": "object",
+                "required": [
+                  "ID"
+                ],
+                "properties": {
+                  "UserName": {
+                    "type": "string"
+                  },
+                  "Pwd": {
+                    "type": "string"
+                  }
+                }
+              },
+              "ResponseLogin": {
+                "type": "object",
+                "properties": {
+                  "Code": {
+                    "type": "integer"
+                  },
+                  "Message": {
+                    "type": "string"
+                  },
+                  "FullName": {
+                    "type": "string"
+                  },
+                  "CompanyID": {
+                    "type": "string"
+                  },
+                  "CompanyName": {
+                    "type": "string"
+                  },
+                  "AvatarID": {
+                    "type": "string"
+                  },
+                  "UID": {
+                    "type": "string"
+                  }
+                }
+              }
+        }
+    }
+
+}
