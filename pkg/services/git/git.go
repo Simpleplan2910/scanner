@@ -17,6 +17,10 @@ type gitRepos struct {
 }
 
 func New(dir string) Service {
+	_, err := os.Stat(dir)
+	if os.IsNotExist(err) {
+		os.Mkdir(dir, 0700)
+	}
 	return &gitRepos{TmpDir: dir}
 }
 

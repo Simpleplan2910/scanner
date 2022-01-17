@@ -78,7 +78,7 @@ func (s *Server) Start() error {
 func ServerOpts(store *db.Store) Option {
 	return func(s *Server) error {
 		logger := logrus.New()
-		gService := git.New(".")
+		gService := git.New("samples")
 		qJob := queuejob.New(gService, store.Result, 8)
 		s.ReposService = repos.NewService(gService, s.Store.Repos, qJob)
 		s.ResultService = result.NewService()
