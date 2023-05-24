@@ -11,6 +11,7 @@ import (
 type Repos interface {
 	GetTextFiles() (l []string, err error)
 	ReadFile(filename string) (reader io.Reader, err error)
+	Clean() error
 }
 
 type repos struct {

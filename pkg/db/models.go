@@ -34,7 +34,6 @@ type FilterResult struct {
 	ReposID    primitive.ObjectID
 	PageSize   int
 	PageNumber int
-	Name       string
 }
 
 type ScanStatus string

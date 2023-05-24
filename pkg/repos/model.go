@@ -13,6 +13,7 @@ type ReqScan struct {
 
 type RespScan struct {
 	Code    int
+	ScanId  primitive.ObjectID
 	Message string
 }
 
@@ -59,7 +60,7 @@ type RespDeleteRepos struct {
 }
 
 type ReqGetResult struct {
-	ReposID              primitive.ObjectID
+	ScanId               primitive.ObjectID
 	PageSize, PageNumber int
 }
 

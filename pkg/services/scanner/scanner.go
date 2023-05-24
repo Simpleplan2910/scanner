@@ -46,6 +46,7 @@ func (s serviceLocal) scan(ctx context.Context, rep *Repos, substr string) {
 		}
 		return
 	}
+	defer r.Clean()
 	files, err := r.GetTextFiles()
 	if err != nil {
 		logrus.Errorf("Error when get text files in git repos %s", err)

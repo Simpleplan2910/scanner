@@ -18,7 +18,7 @@ type Service interface {
 	UpdateRepos(ctx context.Context, req *ReqUpdateRepos) (resp *RespUpdateRepos, err error)
 	ArchiveRepos(ctx context.Context, req *ReqDeleteRepos) (resp *RespDeleteRepos, err error)
 	StartScanRepos(ctx context.Context, req *ReqScan) (resp *RespScan, err error)
-	GetResult(ctx context.Context, req *ReqGetResult) (resp *RespGetResult, err error)
+	GetScanResult(ctx context.Context, req *ReqGetResult) (resp *RespGetResult, err error)
 }
 
 type service struct {
@@ -60,7 +60,7 @@ func (s *service) StartScanRepos(ctx context.Context, req *ReqScan) (resp *RespS
 		resp.Message = apierror.InternalServerErrorMess
 		return resp, fmt.Errorf("filter error: %w", err)
 	}
-
+	resp.ScanId = scanId
 	return resp, nil
 }
 
@@ -158,32 +158,32 @@ func (s *service) ArchiveRepos(ctx context.Context, req *ReqDeleteRepos) (resp *
 	return resp, nil
 }
 
-func (s *service) GetResult(ctx context.Context, req *ReqGetResult) (resp *RespGetResult, err error) {
-	// resp = &RespGetResult{}
-	// if req.ReposID.IsZero() {
-	// 	resp.Code = apierror.InvalidRequest
-	// 	resp.Message = apierror.InvalidRequestMess
-	// 	return resp, fmt.Errorf("id empty")
-	// }
+func (s *service) GetScanResult(ctx context.Context, req *ReqGetResult) (resp *RespGetResult, err error) {
+	resp = &RespGetResult{}
+	if req.ScanId.IsZero() {
+		resp.Code = apierror.InvalidRequest
+		resp.Message = apierror.InvalidRequestMess
+		return resp, fmt.Errorf("id empty")
+	}
 
-	// if req.PageNumber < 1 || req.PageSize < 1 {
-	// 	resp.Code = apierror.InvalidRequest
-	// 	resp.Message = apierror.InvalidRequestMess
-	// 	return resp, fmt.Errorf("page number or page size less than 1")
-	// }
+	if req.PageNumber < 1 || req.PageSize < 1 {
+		resp.Code = apierror.InvalidRequest
+		resp.Message = apierror.InvalidRequestMess
+		return resp, fmt.Errorf("page number or page size less than 1")
+	}
 
-	// filter := &db.FilterResult{
-	// 	ReposID:    req.ReposID,
-	// 	PageSize:   req.PageSize,
-	// 	PageNumber: req.PageNumber,
-	// }
-	// results, total, err := s.result.Filter(ctx, filter)
-	// if err != nil {
-	// 	resp.Code = apierror.InternalServerError
-	// 	resp.Message = apierror.InternalServerErrorMess
-	// 	return resp, fmt.Errorf("filter error: %w", err)
-	// }
-	// resp.Results = results
-	// resp.Total = total
+	filter := &db.FilterResult{
+		ReposID:    req.ScanId,
+		PageSize:   req.PageSize,
+		PageNumber: req.PageNumber,
+	}
+	results, total, err := s.result.Filter(ctx, filter)
+	if err != nil {
+		resp.Code = apierror.InternalServerError
+		resp.Message = apierror.InternalServerErrorMess
+		return resp, fmt.Errorf("filter error: %w", err)
+	}
+	resp.Results = results
+	resp.Total = total
 	return resp, nil
 }

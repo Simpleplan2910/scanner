@@ -15,7 +15,7 @@ const resultCollection = "results"
 
 type Result struct {
 	ID        primitive.ObjectID `bson:"_id,omitempty"`
-	ScanID    primitive.ObjectID `bson:"reposId"`
+	ScanID    primitive.ObjectID `bson:"scanId"`
 	Lines     []Line             `bson:"lines"`
 	Filename  string             `bson:"fileName"`
 	Error     string             `bson:"error"`
@@ -29,6 +29,7 @@ type resultStore struct {
 
 type ResultStore interface {
 	Add(ctx context.Context, v *Result) (id primitive.ObjectID, err error)
+	Filter(ctx context.Context, filter *FilterResult) (results []Result, total int64, err error)
 }
 
 func newResultStore(db *mongo.Database) ResultStore {
@@ -63,12 +64,11 @@ func (db *resultStore) Filter(ctx context.Context, filter *FilterResult) (result
 		findOptions.SetSkip(int64((filter.PageNumber - 1) * filter.PageSize))
 		findOptions.SetLimit(int64(filter.PageSize))
 	}
+	if !filter.ReposID.IsZero() {
+		match["scanId"] = filter.ReposID
+	}
 
 	findOptions.SetSort(bson.M{"createdAt": -1})
-
-	if filter.Name != "" {
-		match["repositoryName"] = bson.M{"$regex": filter.Name, "$options": "i"}
-	}
 
 	cursor, err := db.collection.Find(ctx, match, findOptions)
 	if err != nil {
@@ -94,7 +94,7 @@ func (db *resultStore) createIndexes(ctx context.Context) error {
 	iv := db.collection.Indexes()
 	model := mongo.IndexModel{
 		Keys: bson.D{
-			{"queuedAt", int32(1)},
+			{"CreatedAt", int32(1)},
 		},
 	}
 	if err := createIndexIfNotExists(ctx, iv, model); err != nil {
@@ -104,7 +104,7 @@ func (db *resultStore) createIndexes(ctx context.Context) error {
 	iv = db.collection.Indexes()
 	model = mongo.IndexModel{
 		Keys: bson.D{
-			{"reposId", int32(1)},
+			{"scanId", int32(1)},
 		},
 	}
 	if err := createIndexIfNotExists(ctx, iv, model); err != nil {
