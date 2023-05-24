@@ -17,6 +17,10 @@ type repos struct {
 	dir string
 }
 
+func (r *repos) Clean() error {
+	return os.RemoveAll(r.dir)
+}
+
 func (r *repos) GetTextFiles() (l []string, err error) {
 	l = []string{}
 	err = filepath.Walk(r.dir, func(path string, infos fs.FileInfo, err error) error {
@@ -50,7 +54,7 @@ func (r *repos) ReadFile(filename string) (reader io.Reader, err error) {
 	return os.Open(filename)
 }
 
-// steal from godoc/util/util.go with a little of modifying
+// steal from godoc/util/util.go with a little bit of modifying
 
 // IsText reports whether a significant prefix of s looks like correct UTF-8;
 // that is, if it is likely that s is human-readable text.

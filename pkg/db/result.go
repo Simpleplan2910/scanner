@@ -14,15 +14,12 @@ import (
 const resultCollection = "results"
 
 type Result struct {
-	ID             primitive.ObjectID `bson:"_id,omitempty"`
-	ReposId        primitive.ObjectID `bson:"reposId"`
-	Status         ResultStatus       `bson:"status"`
-	RepositoryUrl  string             `bson:"repositoryUrl"`
-	RepositoryName string             `bson:"repositoryName"`
-	Findings       string             `bson:"findings"`
-	QueuedAt       time.Time          `bson:"queuedAt"`
-	ScanningAt     time.Time          `bson:"scanningAt"`
-	FinishedAt     time.Time          `bson:"finishedAt"`
+	ID        primitive.ObjectID `bson:"_id,omitempty"`
+	ScanID    primitive.ObjectID `bson:"reposId"`
+	Lines     []Line             `bson:"lines"`
+	Filename  string             `bson:"fileName"`
+	Error     string             `bson:"error"`
+	CreatedAt time.Time          `bson:"createdAt"`
 }
 
 type resultStore struct {
@@ -32,12 +29,6 @@ type resultStore struct {
 
 type ResultStore interface {
 	Add(ctx context.Context, v *Result) (id primitive.ObjectID, err error)
-	UpdateQueuedAt(ctx context.Context, id primitive.ObjectID, t time.Time) error
-	UpdateFinishedAt(ctx context.Context, id primitive.ObjectID, t time.Time) error
-	UpdateScanningAt(ctx context.Context, id primitive.ObjectID, t time.Time) error
-	UpdateStatus(ctx context.Context, id primitive.ObjectID, status ResultStatus) error
-	UpdateFinding(ctx context.Context, id primitive.ObjectID, findings string) error
-	Filter(ctx context.Context, filter *FilterResult) (results []Result, total int64, err error)
 }
 
 func newResultStore(db *mongo.Database) ResultStore {
@@ -64,46 +55,6 @@ func (db *resultStore) Add(ctx context.Context, v *Result) (id primitive.ObjectI
 	return oid, nil
 }
 
-func (db *resultStore) UpdateQueuedAt(ctx context.Context, id primitive.ObjectID, t time.Time) error {
-	up := bson.M{
-		"queuedAt": t,
-	}
-	_, err := db.collection.UpdateOne(ctx, bson.M{"_id": id}, bson.M{"$set": up})
-	return err
-}
-
-func (db *resultStore) UpdateStatus(ctx context.Context, id primitive.ObjectID, status ResultStatus) error {
-	up := bson.M{
-		"status": status,
-	}
-	_, err := db.collection.UpdateOne(ctx, bson.M{"_id": id}, bson.M{"$set": up})
-	return err
-}
-
-func (db *resultStore) UpdateFinding(ctx context.Context, id primitive.ObjectID, findings string) error {
-	up := bson.M{
-		"findings": findings,
-	}
-	_, err := db.collection.UpdateOne(ctx, bson.M{"_id": id}, bson.M{"$set": up})
-	return err
-}
-
-func (db *resultStore) UpdateScanningAt(ctx context.Context, id primitive.ObjectID, t time.Time) error {
-	up := bson.M{
-		"scanningAt": t,
-	}
-	_, err := db.collection.UpdateOne(ctx, bson.M{"_id": id}, bson.M{"$set": up})
-	return err
-}
-
-func (db *resultStore) UpdateFinishedAt(ctx context.Context, id primitive.ObjectID, t time.Time) error {
-	up := bson.M{
-		"finishedAt": t,
-	}
-	_, err := db.collection.UpdateOne(ctx, bson.M{"_id": id}, bson.M{"$set": up})
-	return err
-}
-
 func (db *resultStore) Filter(ctx context.Context, filter *FilterResult) (results []Result, total int64, err error) {
 	findOptions := options.Find()
 	results = []Result{}
@@ -112,10 +63,9 @@ func (db *resultStore) Filter(ctx context.Context, filter *FilterResult) (result
 		findOptions.SetSkip(int64((filter.PageNumber - 1) * filter.PageSize))
 		findOptions.SetLimit(int64(filter.PageSize))
 	}
-	// create time descending
+
 	findOptions.SetSort(bson.M{"createdAt": -1})
 
-	// filter docs that name contains filter text
 	if filter.Name != "" {
 		match["repositoryName"] = bson.M{"$regex": filter.Name, "$options": "i"}
 	}

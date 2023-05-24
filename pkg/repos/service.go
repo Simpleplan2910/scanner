@@ -6,32 +6,34 @@ import (
 	apierror "scanner/pkg/apiError"
 	"scanner/pkg/db"
 	"scanner/pkg/services/git"
-	queuejob "scanner/pkg/services/queueJob"
+	"scanner/pkg/services/scanner"
 	"time"
+
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 type Service interface {
 	AddRepos(ctx context.Context, req *ReqAddRepos) (resp *RespAddRepos, err error)
 	GetRepos(ctx context.Context, req *ReqGetRepos) (resp *RespGetRepos, err error)
 	UpdateRepos(ctx context.Context, req *ReqUpdateRepos) (resp *RespUpdateRepos, err error)
-	DeleteRepos(ctx context.Context, req *ReqDeleteRepos) (resp *RespDeleteRepos, err error)
+	ArchiveRepos(ctx context.Context, req *ReqDeleteRepos) (resp *RespDeleteRepos, err error)
 	StartScanRepos(ctx context.Context, req *ReqScan) (resp *RespScan, err error)
 	GetResult(ctx context.Context, req *ReqGetResult) (resp *RespGetResult, err error)
 }
 
 type service struct {
-	gitService git.Service
-	repoStore  db.ReposStore
-	result     db.ResultStore
-	queue      queuejob.QueueJob
+	gitService     git.Service
+	repoStore      db.ReposStore
+	result         db.ResultStore
+	scannerService scanner.Service
 }
 
-func NewService(gitService git.Service, repoStore db.ReposStore, result db.ResultStore, queue queuejob.QueueJob) Service {
+func NewService(gitService git.Service, repoStore db.ReposStore, result db.ResultStore, s scanner.Service) Service {
 	return &service{
-		gitService: gitService,
-		repoStore:  repoStore,
-		result:     result,
-		queue:      queue,
+		gitService:     gitService,
+		repoStore:      repoStore,
+		result:         result,
+		scannerService: s,
 	}
 }
 
@@ -44,13 +46,15 @@ func (s *service) StartScanRepos(ctx context.Context, req *ReqScan) (resp *RespS
 		resp.Message = apierror.InternalServerErrorMess
 		return resp, fmt.Errorf("can't get respos from db with error: %w", err)
 	}
-	j := &queuejob.Job{
+	scanId := primitive.NewObjectID()
+	repo := &scanner.Repos{
+		ScanId:    scanId,
 		ReposId:   repos.ID,
 		ReposURL:  repos.ReposURL,
 		ReposName: repos.Name,
 	}
 	// add repos to job queue
-	err = s.queue.AddJob(ctx, j)
+	err = s.scannerService.Scan(ctx, repo, req.Substr)
 	if err != nil {
 		resp.Code = apierror.InternalServerError
 		resp.Message = apierror.InternalServerErrorMess
@@ -135,7 +139,7 @@ func (s *service) UpdateRepos(ctx context.Context, req *ReqUpdateRepos) (resp *R
 	return resp, nil
 }
 
-func (s *service) DeleteRepos(ctx context.Context, req *ReqDeleteRepos) (resp *RespDeleteRepos, err error) {
+func (s *service) ArchiveRepos(ctx context.Context, req *ReqDeleteRepos) (resp *RespDeleteRepos, err error) {
 	resp = &RespDeleteRepos{}
 	// TODO: should check if reposURL valid and exist
 	if req.ID.IsZero() {
@@ -144,7 +148,7 @@ func (s *service) DeleteRepos(ctx context.Context, req *ReqDeleteRepos) (resp *R
 		return resp, fmt.Errorf("id empty")
 	}
 
-	err = s.repoStore.Delete(ctx, req.ID)
+	err = s.repoStore.Archive(ctx, req.ID)
 	if err != nil {
 		resp.Code = apierror.InternalServerError
 		resp.Message = apierror.InternalServerErrorMess
@@ -155,31 +159,31 @@ func (s *service) DeleteRepos(ctx context.Context, req *ReqDeleteRepos) (resp *R
 }
 
 func (s *service) GetResult(ctx context.Context, req *ReqGetResult) (resp *RespGetResult, err error) {
-	resp = &RespGetResult{}
-	if req.ReposID.IsZero() {
-		resp.Code = apierror.InvalidRequest
-		resp.Message = apierror.InvalidRequestMess
-		return resp, fmt.Errorf("id empty")
-	}
+	// resp = &RespGetResult{}
+	// if req.ReposID.IsZero() {
+	// 	resp.Code = apierror.InvalidRequest
+	// 	resp.Message = apierror.InvalidRequestMess
+	// 	return resp, fmt.Errorf("id empty")
+	// }
 
-	if req.PageNumber < 1 || req.PageSize < 1 {
-		resp.Code = apierror.InvalidRequest
-		resp.Message = apierror.InvalidRequestMess
-		return resp, fmt.Errorf("page number or page size less than 1")
-	}
+	// if req.PageNumber < 1 || req.PageSize < 1 {
+	// 	resp.Code = apierror.InvalidRequest
+	// 	resp.Message = apierror.InvalidRequestMess
+	// 	return resp, fmt.Errorf("page number or page size less than 1")
+	// }
 
-	filter := &db.FilterResult{
-		ReposID:    req.ReposID,
-		PageSize:   req.PageSize,
-		PageNumber: req.PageNumber,
-	}
-	results, total, err := s.result.Filter(ctx, filter)
-	if err != nil {
-		resp.Code = apierror.InternalServerError
-		resp.Message = apierror.InternalServerErrorMess
-		return resp, fmt.Errorf("filter error: %w", err)
-	}
-	resp.Results = results
-	resp.Total = total
+	// filter := &db.FilterResult{
+	// 	ReposID:    req.ReposID,
+	// 	PageSize:   req.PageSize,
+	// 	PageNumber: req.PageNumber,
+	// }
+	// results, total, err := s.result.Filter(ctx, filter)
+	// if err != nil {
+	// 	resp.Code = apierror.InternalServerError
+	// 	resp.Message = apierror.InternalServerErrorMess
+	// 	return resp, fmt.Errorf("filter error: %w", err)
+	// }
+	// resp.Results = results
+	// resp.Total = total
 	return resp, nil
 }

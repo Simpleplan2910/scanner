@@ -10,7 +10,7 @@ import (
 	"scanner/pkg/repos"
 	"scanner/pkg/result"
 	"scanner/pkg/services/git"
-	queuejob "scanner/pkg/services/queueJob"
+	"scanner/pkg/services/scanner"
 	"time"
 
 	"github.com/gorilla/handlers"
@@ -31,8 +31,8 @@ type Server struct {
 	ReposService  repos.Service
 	ResultService result.Service
 
-	GitService git.Service
-	QueueJob   queuejob.QueueJob
+	GitService     git.Service
+	ScannerService scanner.Service
 }
 
 // Option : server option
@@ -74,16 +74,15 @@ func (s *Server) Start() error {
 	return nil
 }
 
-//TODO: read options from file
+// TODO: read options from file
 func ServerOpts(store *db.Store) Option {
 	return func(s *Server) error {
 		logger := logrus.New()
 		gService := git.New("samples")
-		qJob := queuejob.New(gService, store.Result, 8)
-		s.ReposService = repos.NewService(gService, s.Store.Repos, s.Store.Result, qJob)
+		sService := scanner.NewLocalService(s.Store.Result, gService)
+		s.ReposService = repos.NewService(gService, s.Store.Repos, s.Store.Result, sService)
 		s.ResultService = result.NewService()
 		s.GitService = gService
-		s.QueueJob = qJob
 		s.Logger = logger.WithField("service", "scanner")
 		return nil
 	}
@@ -102,7 +101,6 @@ func (s *Server) Shutdown(ctx context.Context) {
 }
 
 func (s *Server) initService() {
-	s.QueueJob.Start()
 	s.intiHealthCheck()
 	s.initReposService()
 }
@@ -115,7 +113,7 @@ func (s *Server) intiHealthCheck() {
 }
 
 func (s *Server) initReposService() {
-	service := repos.NewService(s.GitService, s.Store.Repos, s.Store.Result, s.QueueJob)
+	service := repos.NewService(s.GitService, s.Store.Repos, s.Store.Result, s.ScannerService)
 	loggingService := repos.NewLoggingService(s.Logger, service)
 	repos.NewHandler(s.Logger, loggingService).AddRoutes(s.RootRouter)
 }

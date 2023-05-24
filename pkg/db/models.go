@@ -37,11 +37,16 @@ type FilterResult struct {
 	Name       string
 }
 
-type ResultStatus string
+type ScanStatus string
 
 const (
-	Queued     ResultStatus = "Queued"
-	InProgress ResultStatus = "In Progress"
-	Success    ResultStatus = "Success"
-	Failure    ResultStatus = "Failure"
+	Queued     ScanStatus = "Queued"
+	InProgress ScanStatus = "In Progress"
+	Success    ScanStatus = "Success"
+	Failure    ScanStatus = "Failure"
 )
+
+type Line struct {
+	LineNum uint32
+	Indexes []int
+}

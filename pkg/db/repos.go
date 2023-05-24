@@ -22,6 +22,7 @@ type Repos struct {
 	ID        primitive.ObjectID `bson:"_id,omitempty"`
 	Name      string             `bson:"name"`
 	ReposURL  string             `bson:"reposURL"`
+	IsArchive bool               `bson:"isArchive"`
 	CreatedAt time.Time          `bson:"createdAt"`
 	UpdatedAt time.Time          `bson:"updatedAt"`
 }
@@ -29,7 +30,7 @@ type Repos struct {
 type ReposStore interface {
 	Add(ctx context.Context, v *Repos) (id primitive.ObjectID, err error)
 	Filter(ctx context.Context, filter *FilterRepos) (repos []Repos, total int64, err error)
-	Delete(ctx context.Context, id primitive.ObjectID) error
+	Archive(ctx context.Context, id primitive.ObjectID) error
 	Update(ctx context.Context, id primitive.ObjectID, update *UpdateRepos) error
 	Get(ctx context.Context, id primitive.ObjectID) (repos *Repos, err error)
 }
@@ -105,11 +106,11 @@ func (db *reposStore) Get(ctx context.Context, id primitive.ObjectID) (repos *Re
 	return repos, err
 }
 
-func (db *reposStore) Delete(ctx context.Context, id primitive.ObjectID) error {
-	filter := bson.M{
-		"_id": id,
+func (db *reposStore) Archive(ctx context.Context, id primitive.ObjectID) error {
+	up := bson.M{
+		"isArchive": true,
 	}
-	_, err := db.collection.DeleteOne(ctx, filter)
+	_, err := db.collection.UpdateOne(ctx, bson.M{"_id": id}, bson.M{"$set": up})
 	return err
 }
 

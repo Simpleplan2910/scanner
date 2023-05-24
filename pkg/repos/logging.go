@@ -69,7 +69,7 @@ func (s *loggingService) UpdateRepos(ctx context.Context, req *ReqUpdateRepos) (
 	return s.next.UpdateRepos(ctx, req)
 }
 
-func (s *loggingService) DeleteRepos(ctx context.Context, req *ReqDeleteRepos) (resp *RespDeleteRepos, err error) {
+func (s *loggingService) ArchiveRepos(ctx context.Context, req *ReqDeleteRepos) (resp *RespDeleteRepos, err error) {
 	defer func(begin time.Time) {
 		took := time.Since(begin)
 		s.logger.WithFields(logrus.Fields{
@@ -82,7 +82,7 @@ func (s *loggingService) DeleteRepos(ctx context.Context, req *ReqDeleteRepos) (
 			"error":            fmt.Sprintf("%+v", err),
 		}).Info("DeleteRepos")
 	}(time.Now())
-	return s.next.DeleteRepos(ctx, req)
+	return s.next.ArchiveRepos(ctx, req)
 }
 
 func (s *loggingService) StartScanRepos(ctx context.Context, req *ReqScan) (resp *RespScan, err error) {

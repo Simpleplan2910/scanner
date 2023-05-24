@@ -23,7 +23,7 @@ func (h *handler) AddRoutes(r *mux.Router) {
 	r.HandleFunc("/repos/update", h.updateRepos).Methods(http.MethodPost)
 	r.HandleFunc("/repos/delete", h.deleteRepos).Methods(http.MethodPost)
 	r.HandleFunc("/repos/scan", h.scanRepos).Methods(http.MethodPost)
-	r.HandleFunc("/repos/scan_results", h.scanResult).Methods(http.MethodPost)
+	r.HandleFunc("/repos/scan/results", h.scanResult).Methods(http.MethodPost)
 }
 
 func (h *handler) addRepos(w http.ResponseWriter, r *http.Request) {
@@ -82,7 +82,7 @@ func (h *handler) deleteRepos(w http.ResponseWriter, r *http.Request) {
 		net.WriteJSON(w, nil, err)
 		return
 	}
-	response, err = h.s.DeleteRepos(r.Context(), request)
+	response, err = h.s.ArchiveRepos(r.Context(), request)
 	net.WriteJSON(w, response, err)
 }
 

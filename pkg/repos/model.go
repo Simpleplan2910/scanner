@@ -8,6 +8,7 @@ import (
 
 type ReqScan struct {
 	ReposId primitive.ObjectID
+	Substr  string
 }
 
 type RespScan struct {

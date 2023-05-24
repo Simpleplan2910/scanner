@@ -127,16 +127,3 @@ func (_m *ResultStore) UpdateScanningAt(ctx context.Context, id primitive.Object
 	return r0
 }
 
-// UpdateStatus provides a mock function with given fields: ctx, id, status
-func (_m *ResultStore) UpdateStatus(ctx context.Context, id primitive.ObjectID, status db.ResultStatus) error {
-	ret := _m.Called(ctx, id, status)
-
-	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, primitive.ObjectID, db.ResultStatus) error); ok {
-		r0 = rf(ctx, id, status)
-	} else {
-		r0 = ret.Error(0)
-	}
-
-	return r0
-}
