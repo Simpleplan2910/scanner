@@ -43,6 +43,11 @@ func NewService(gitService git.Service, repoStore db.ReposStore, result db.Resul
 func (s *service) StartScanRepos(ctx context.Context, req *ReqScan) (resp *RespScan, err error) {
 	// get repos
 	resp = &RespScan{}
+	if req.ReposId.IsZero() || len(req.Substr) == 0 {
+		resp.Code = apierror.InvalidRequest
+		resp.Message = apierror.InvalidRequestMess
+		return resp, fmt.Errorf("reposId or substr empty")
+	}
 	repos, err := s.repoStore.Get(ctx, req.ReposId)
 	if err != nil {
 		resp.Code = apierror.InternalServerError
@@ -134,7 +139,7 @@ func (s *service) GetRepos(ctx context.Context, req *ReqGetRepos) (resp *RespGet
 
 func (s *service) UpdateRepos(ctx context.Context, req *ReqUpdateRepos) (resp *RespUpdateRepos, err error) {
 	resp = &RespUpdateRepos{}
-	// TODO: should check if reposURL valid and exist
+
 	if req.ID.IsZero() {
 		resp.Code = apierror.InvalidRequest
 		resp.Message = apierror.InvalidRequestMess
@@ -145,6 +150,12 @@ func (s *service) UpdateRepos(ctx context.Context, req *ReqUpdateRepos) (resp *R
 		resp.Code = apierror.InvalidRequest
 		resp.Message = apierror.InvalidRequestMess
 		return resp, fmt.Errorf("name and reposURL empty")
+	}
+
+	if req.ReposURL != "" && !isGitHubURL(req.ReposURL) {
+		resp.Code = apierror.InvalidRequest
+		resp.Message = apierror.InvalidRequestMess
+		return resp, fmt.Errorf("invalid github url")
 	}
 	update := &db.UpdateRepos{
 		Name:     req.Name,
@@ -162,7 +173,6 @@ func (s *service) UpdateRepos(ctx context.Context, req *ReqUpdateRepos) (resp *R
 
 func (s *service) ArchiveRepos(ctx context.Context, req *ReqDeleteRepos) (resp *RespDeleteRepos, err error) {
 	resp = &RespDeleteRepos{}
-	// TODO: should check if reposURL valid and exist
 	if req.ID.IsZero() {
 		resp.Code = apierror.InvalidRequest
 		resp.Message = apierror.InvalidRequestMess
