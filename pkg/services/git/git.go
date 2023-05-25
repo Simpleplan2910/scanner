@@ -8,6 +8,7 @@ import (
 	"github.com/go-git/go-git/v5"
 )
 
+//go:generate mockery --name Service
 type Service interface {
 	GetRepos(reposURl string) (r Repos, err error)
 }

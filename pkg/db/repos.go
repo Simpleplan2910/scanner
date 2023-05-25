@@ -27,6 +27,7 @@ type Repos struct {
 	UpdatedAt time.Time          `bson:"updatedAt"`
 }
 
+//go:generate mockery --name ReposStore
 type ReposStore interface {
 	Add(ctx context.Context, v *Repos) (id primitive.ObjectID, err error)
 	Filter(ctx context.Context, filter *FilterRepos) (repos []Repos, total int64, err error)

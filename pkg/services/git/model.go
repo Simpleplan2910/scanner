@@ -19,7 +19,8 @@ type repos struct {
 }
 
 func (r *repos) Clean() error {
-	return os.RemoveAll(r.dir)
+	err := os.RemoveAll(r.dir)
+	return err
 }
 
 func (r *repos) GetTextFiles() (l []string, err error) {

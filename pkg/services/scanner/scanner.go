@@ -7,11 +7,13 @@ import (
 	"scanner/pkg/db"
 	"scanner/pkg/services/git"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/sirupsen/logrus"
 )
 
+//go:generate mockery --name Service
 type Service interface {
 	Scan(ctx context.Context, r *Repos, substr string) error
 }
@@ -23,8 +25,8 @@ type serviceLocal struct {
 	numWorker   int
 }
 
-func NewLocalService(r db.ResultStore, git git.Service) Service {
-	return serviceLocal{resultStore: r, git: git}
+func NewLocalService(r db.ResultStore, git git.Service, gs db.ScanStore, nWoker int) Service {
+	return serviceLocal{resultStore: r, git: git, scanStore: gs, numWorker: nWoker}
 }
 
 func (s serviceLocal) Scan(ctx context.Context, r *Repos, substr string) error {
@@ -34,9 +36,6 @@ func (s serviceLocal) Scan(ctx context.Context, r *Repos, substr string) error {
 }
 
 func (s serviceLocal) scan(ctx context.Context, rep *Repos, substr string) {
-	// get repo to local disk
-	// bc this local, just read 1 file and send to other worker
-	// buffer 1 or more files for the next read
 	// TODO: move to search by line per worker instead of by file
 	r, err := s.git.GetRepos(rep.ReposURL)
 	if err != nil {
@@ -58,27 +57,44 @@ func (s serviceLocal) scan(ctx context.Context, rep *Repos, substr string) {
 
 	fls := make(chan file)
 	results := make(chan *scanResult)
+	var wg sync.WaitGroup
+	wg.Add(len(files))
 
 	for i := 0; i < s.numWorker; i++ {
-		go worker(fls, results, substr)
+		go worker(fls, results, &wg, substr)
 	}
 
-	for _, f := range files {
-		b, err := os.ReadFile(f)
-		if err != nil {
-			return
+	go func() {
+		for _, f := range files {
+			b, err := os.ReadFile(f)
+			if err != nil {
+				wg.Done()
+				results <- &scanResult{
+					Error:    err,
+					Filename: f,
+				}
+				continue
+			}
+			fls <- file{
+				File:     b,
+				FileName: f,
+			}
 		}
-		fls <- file{
-			File:     b,
-			FileName: f,
-		}
-	}
-
+	}()
+	go func() {
+		wg.Wait()
+		close(results)
+	}()
 	for r := range results {
+		// empty result, dont add to db
+		if err == nil && len(r.Lines) == 0 {
+			continue
+		}
 		er := ""
 		if r.Error != nil {
 			er = r.Error.Error()
 		}
+
 		res := &db.Result{
 			ScanID:    rep.ScanId,
 			Lines:     r.Lines,
@@ -90,16 +106,16 @@ func (s serviceLocal) scan(ctx context.Context, rep *Repos, substr string) {
 		if err != nil {
 			logrus.Errorf("Failed to add restult to storage with error %s", err)
 			if err = s.scanStore.UpdateError(ctx, rep.ScanId); err != nil {
-				logrus.Errorf("Error when update scan failed tto storage with error %s", err)
+				logrus.Errorf("Error when update scan failed to storage with error %s", err)
 			}
 			return
 		}
-
 	}
+	logrus.Infoln("----!DONE!------")
 }
 
 // TODO: add timeout
-func worker(files <-chan file, results chan<- *scanResult, substr string) {
+func worker(files <-chan file, results chan<- *scanResult, wg *sync.WaitGroup, substr string) {
 	for f := range files {
 		lines, err := findSubstring(f.File, substr)
 		results <- &scanResult{
@@ -107,6 +123,7 @@ func worker(files <-chan file, results chan<- *scanResult, substr string) {
 			Error:    err,
 			Filename: f.FileName,
 		}
+		wg.Done()
 	}
 }
 

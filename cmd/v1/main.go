@@ -32,8 +32,8 @@ func main() {
 	store := db.NewStore(dbConn)
 
 	otps := func(s *app.Server) error {
-		logger := logrus.New()
-		logger.SetFormatter(&logrus.JSONFormatter{})
+		logrus.SetFormatter(&logrus.JSONFormatter{})
+		logrus.SetLevel(logrus.DebugLevel)
 		s.Store = store
 		s.ListenAddress = "0.0.0.0:6080"
 		return nil

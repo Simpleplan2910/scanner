@@ -8,7 +8,6 @@ import (
 	"os"
 	"scanner/pkg/db"
 	"scanner/pkg/repos"
-	"scanner/pkg/result"
 	"scanner/pkg/services/git"
 	"scanner/pkg/services/scanner"
 	"time"
@@ -28,8 +27,7 @@ type Server struct {
 	Server        *http.Server
 	Store         *db.Store
 
-	ReposService  repos.Service
-	ResultService result.Service
+	ReposService repos.Service
 
 	GitService     git.Service
 	ScannerService scanner.Service
@@ -79,10 +77,10 @@ func ServerOpts(store *db.Store) Option {
 	return func(s *Server) error {
 		logger := logrus.New()
 		gService := git.New("samples")
-		sService := scanner.NewLocalService(s.Store.Result, gService)
-		s.ReposService = repos.NewService(gService, s.Store.Repos, s.Store.Result, sService)
-		s.ResultService = result.NewService()
+		sService := scanner.NewLocalService(s.Store.Result, gService, s.Store.Scan, 8)
+		s.ReposService = repos.NewService(gService, s.Store.Repos, s.Store.Result, sService, s.Store.Scan)
 		s.GitService = gService
+		s.ScannerService = sService
 		s.Logger = logger.WithField("service", "scanner")
 		return nil
 	}
@@ -113,7 +111,6 @@ func (s *Server) intiHealthCheck() {
 }
 
 func (s *Server) initReposService() {
-	service := repos.NewService(s.GitService, s.Store.Repos, s.Store.Result, s.ScannerService)
-	loggingService := repos.NewLoggingService(s.Logger, service)
+	loggingService := repos.NewLoggingService(s.Logger, s.ReposService)
 	repos.NewHandler(s.Logger, loggingService).AddRoutes(s.RootRouter)
 }

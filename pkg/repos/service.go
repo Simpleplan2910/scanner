@@ -3,13 +3,14 @@ package repos
 import (
 	"context"
 	"fmt"
+	"net"
+	"net/url"
 	apierror "scanner/pkg/apiError"
 	"scanner/pkg/db"
 	"scanner/pkg/services/git"
 	"scanner/pkg/services/scanner"
+	"strings"
 	"time"
-
-	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 type Service interface {
@@ -24,15 +25,17 @@ type Service interface {
 type service struct {
 	gitService     git.Service
 	repoStore      db.ReposStore
+	scanRepo       db.ScanStore
 	result         db.ResultStore
 	scannerService scanner.Service
 }
 
-func NewService(gitService git.Service, repoStore db.ReposStore, result db.ResultStore, s scanner.Service) Service {
+func NewService(gitService git.Service, repoStore db.ReposStore, result db.ResultStore, s scanner.Service, sr db.ScanStore) Service {
 	return &service{
 		gitService:     gitService,
 		repoStore:      repoStore,
 		result:         result,
+		scanRepo:       sr,
 		scannerService: s,
 	}
 }
@@ -46,9 +49,20 @@ func (s *service) StartScanRepos(ctx context.Context, req *ReqScan) (resp *RespS
 		resp.Message = apierror.InternalServerErrorMess
 		return resp, fmt.Errorf("can't get respos from db with error: %w", err)
 	}
-	scanId := primitive.NewObjectID()
+	sc := &db.Scan{
+		RepoID:    repos.ID,
+		Status:    db.InProgress,
+		SubString: req.Substr,
+		StartedAt: time.Now(),
+	}
+	id, err := s.scanRepo.Add(ctx, sc)
+	if err != nil {
+		resp.Code = apierror.InternalServerError
+		resp.Message = apierror.InternalServerErrorMess
+		return resp, fmt.Errorf("can't add to scan storage with error: %w", err)
+	}
 	repo := &scanner.Repos{
-		ScanId:    scanId,
+		ScanId:    id,
 		ReposId:   repos.ID,
 		ReposURL:  repos.ReposURL,
 		ReposName: repos.Name,
@@ -60,18 +74,25 @@ func (s *service) StartScanRepos(ctx context.Context, req *ReqScan) (resp *RespS
 		resp.Message = apierror.InternalServerErrorMess
 		return resp, fmt.Errorf("filter error: %w", err)
 	}
-	resp.ScanId = scanId
+	resp.ScanId = id
 	return resp, nil
 }
 
 func (s *service) AddRepos(ctx context.Context, req *ReqAddRepos) (resp *RespAddRepos, err error) {
 	resp = &RespAddRepos{}
-	// TODO: should check if reposURL valid and exist
 	if req.Name == "" || req.ReposURL == "" {
 		resp.Code = apierror.InvalidRequest
 		resp.Message = apierror.InvalidRequestMess
 		return resp, fmt.Errorf("empty name or reposURL when add")
 	}
+
+	// TODO: should check if reposURL valid and exist
+	if !isGitHubURL(req.ReposURL) {
+		resp.Code = apierror.InvalidRequest
+		resp.Message = apierror.InvalidRequestMess
+		return resp, fmt.Errorf("only accept github repos for now")
+	}
+
 	repos := &db.Repos{
 		Name:      req.Name,
 		ReposURL:  req.ReposURL,
@@ -186,4 +207,19 @@ func (s *service) GetScanResult(ctx context.Context, req *ReqGetResult) (resp *R
 	resp.Results = results
 	resp.Total = total
 	return resp, nil
+}
+
+func isGitHubURL(input string) bool {
+	u, err := url.Parse(input)
+	if err != nil {
+		return false
+	}
+	host := u.Host
+	if strings.Contains(host, ":") {
+		host, _, err = net.SplitHostPort(host)
+		if err != nil {
+			return false
+		}
+	}
+	return host == "github.com"
 }

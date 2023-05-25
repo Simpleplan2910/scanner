@@ -27,6 +27,7 @@ type resultStore struct {
 	firstWriteDone bool
 }
 
+//go:generate mockery --name ResultStore
 type ResultStore interface {
 	Add(ctx context.Context, v *Result) (id primitive.ObjectID, err error)
 	Filter(ctx context.Context, filter *FilterResult) (results []Result, total int64, err error)

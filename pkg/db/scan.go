@@ -14,6 +14,7 @@ type Scan struct {
 	ID          primitive.ObjectID `bson:"_id,omitempty"`
 	RepoID      primitive.ObjectID `bson:"repoId"`
 	Status      ScanStatus         `bson:"status"`
+	SubString   string             `bson:"subString"`
 	StartedAt   time.Time          `bson:"startedAt"`
 	CompletedAt time.Time          `bson:"completedAt"`
 }
@@ -23,6 +24,7 @@ type scanStore struct {
 	firstWriteDone bool
 }
 
+//go:generate mockery --name ScanStore
 type ScanStore interface {
 	Add(ctx context.Context, v *Scan) (id primitive.ObjectID, err error)
 	UpdateCompleted(ctx context.Context, id primitive.ObjectID) error
