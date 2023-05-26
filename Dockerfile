@@ -15,7 +15,6 @@ ARG PUID=2000
 ARG PGID=2000
 
 RUN apk add --no-cache curl
-
 COPY --from=builder /go/bin/scanner /go/bin/scanner
 
 #Healthcheck to make sure container is ready

@@ -12,6 +12,7 @@ require (
 	go.mongodb.org/mongo-driver v1.8.2
 )
 
+
 require (
 	github.com/Microsoft/go-winio v0.4.16 // indirect
 	github.com/ProtonMail/go-crypto v0.0.0-20210428141323-04723f9f07d7 // indirect

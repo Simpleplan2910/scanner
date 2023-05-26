@@ -1,5 +1,5 @@
 .DEFAULT_GOAL := cmd/v1/scanner
-.PHONY: clean
+.PHONY: clean start-compse
 SHELL = /usr/bin/env bash
 
 VPREFIX := scanner/internals/version
