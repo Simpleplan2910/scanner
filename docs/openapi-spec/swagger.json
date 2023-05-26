@@ -125,13 +125,13 @@
                 }
             }
         },
-        "/repos/delete": {
+        "/repos/archive": {
             "post": {
                 "tags": [
                     "repository"
                 ],
-                "summary": "delete repository",
-                "description": "delete repository",
+                "summary": "archive a repository",
+                "description": "archive a repository",
                 "requestBody": {
                     "content": {
                         "application/json": {
@@ -191,7 +191,7 @@
                 }
             }
         },
-        "/repos/scan_results": {
+        "/repos/scan/results": {
             "post": {
                 "tags": [
                     "results"
@@ -342,6 +342,9 @@
                 "properties": {
                     "ID": {
                         "type": "string"
+                    },
+                    "Substr" : {
+                        "type": "string"
                     }
                 }
             },
@@ -360,7 +363,8 @@
                 "type": "object",
                 "required": [
                     "PageSize",
-                    "PageNumber"
+                    "PageNumber",
+                    "ScanId"
                 ],
                 "properties": {
                     "PageSize": {
@@ -371,7 +375,7 @@
                         "type": "integer",
                         "description": ">= 1"
                     },
-                    "ReposID" : {
+                    "ScanId" : {
                         "type": "string"
                     }
                 }
@@ -422,35 +426,37 @@
                     "ID": {
                         "type": "string"
                     },
-                    "ReposId": {
+                    "ScanID": {
                         "type": "string"
                     },
-                    "Status": {
-                        "type": "string",
-                        "enum": [
-                          "Queued",
-                          "In Progress",
-                          "Success",
-                          "Failure"
-                        ]
+                    "Lines": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/Line"
+                        }
                     },
-                    "RepositoryUrl": {
+                    "Error": {
                         "type": "string"
                     },
-                    "RepositoryName": {
+                    "Filename": {
                         "type": "string"
                     },
-                    "Findings": {
+                    "CreatedAt": {
                         "type": "string"
+                    }
+                }
+            },
+            "Line" : {
+                "type": "object",
+                "properties": {
+                    "LineNum" : {
+                        "type": "integer"
                     },
-                    "QueuedAt": {
-                        "type": "string"
-                    },
-                    "ScanningAt": {
-                        "type": "string"
-                    },
-                    "FinishedAt": {
-                        "type": "string"
+                    "Indexes" : {
+                        "type": "array",
+                        "items": {
+                            "type": "integer"
+                        }
                     }
                 }
             }
